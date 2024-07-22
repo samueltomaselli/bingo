@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { saveState, getState } from "../db";
 
-
 const board = ref<Array<Array<{ number: number | 'FREE'; marked: boolean }>>>([]);
 const bingoPositions = ref<number[][]>([
   [0, 1, 2, 3, 4],
@@ -126,6 +125,7 @@ const loadGameState = async () => {
 
 onMounted(loadGameState);
 </script>
+
 <template>
   <v-container class="h-screen d-flex">
     <v-row class="d-flex justify-center align-center">
