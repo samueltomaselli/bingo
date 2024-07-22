@@ -5,16 +5,29 @@
  */
 
 // Plugins
-import { registerPlugins } from '@/plugins'
+import { registerPlugins } from "@/plugins";
 
 // Components
-import App from './App.vue'
+import App from "./App.vue";
 
 // Composables
-import { createApp } from 'vue'
+import { createApp } from "vue";
 
-const app = createApp(App)
+const app = createApp(App);
 
-registerPlugins(app)
+registerPlugins(app);
 
-app.mount('#app')
+app.mount("#app");
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").then(
+      (registration) => {
+        console.log("ServiceWorker registrado com sucesso!", registration);
+      },
+      (err) => {
+        console.log("ServiceWorker falhou no registro: ", err);
+      }
+    );
+  });
+}
