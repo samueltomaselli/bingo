@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { saveState, getState } from "../db";
 
-
 const board = ref<Array<Array<{ number: number | 'FREE'; marked: boolean }>>>([]);
 const bingoPositions = ref<number[][]>([
   [0, 1, 2, 3, 4],
@@ -21,6 +20,8 @@ const bingoPositions = ref<number[][]>([
 const drawnNumber = ref<number | '?'>('?');
 const showBingoWin = ref<boolean>(false);
 const dialog = ref<boolean>(false);
+const drawnNumbers = ref<number[]>([]);
+const warningDialog = ref<boolean>(false);
 
 const initializeBoard = () => {
   const getColumnNumbers = (start: number, end: number) => {
@@ -55,29 +56,34 @@ const initializeBoard = () => {
 };
 
 const drawNumber = () => {
-  setTimeout(() => {
+  if (drawnNumbers.value.length >= 75) {
+    warningDialog.value = true;
+    resetGame();
+    return;
+  }
+
+  const interval = setInterval(() => {
     drawnNumber.value = Math.floor(Math.random() * 75) + 1;
-    setTimeout(() => {
-      drawnNumber.value = Math.floor(Math.random() * 75) + 1;
-      setTimeout(() => {
-        drawnNumber.value = Math.floor(Math.random() * 75) + 1;
-        setTimeout(() => {
-          drawnNumber.value = Math.floor(Math.random() * 75) + 1;
-          setTimeout(() => {
-            drawnNumber.value = Math.floor(Math.random() * 75) + 1;
-            saveGameState();
-          }, 100);
-        }, 100);
-      }, 100);
-    }, 100);
-  }, 150);
+  }, 100);
+
+  setTimeout(() => {
+    clearInterval(interval);
+
+    let number;
+    do {
+      number = Math.floor(Math.random() * 75) + 1;
+    } while (drawnNumbers.value.includes(number));
+
+    drawnNumbers.value.push(number);
+    drawnNumber.value = number;
+    saveGameState();
+  }, 500);
 };
 
 const markCell = (rowIndex: number, cellIndex: number) => {
   const cell = board.value[rowIndex][cellIndex];
   if (cell.number === drawnNumber.value) {
     cell.marked = !cell.marked;
-    console.log("Marked cell:", rowIndex, cellIndex, cell);
     checkIfBingo();
     saveGameState();
   }
@@ -107,11 +113,12 @@ const resetGame = () => {
     });
   });
   drawnNumber.value = '?';
+  drawnNumbers.value = [];
   initializeBoard();
 };
 
 const saveGameState = () => {
-  saveState({ id: "bingoDB", board: board.value, drawnNumber: drawnNumber.value as number });
+  saveState({ id: "bingoDB", board: board.value, drawnNumber: drawnNumber.value as number, drawnNumbers: drawnNumbers.value });
 };
 
 const loadGameState = async () => {
@@ -119,6 +126,7 @@ const loadGameState = async () => {
   if (state) {
     board.value = state.board;
     drawnNumber.value = state.drawnNumber;
+    drawnNumbers.value = state.drawnNumbers;
   } else {
     initializeBoard();
   }
@@ -126,6 +134,7 @@ const loadGameState = async () => {
 
 onMounted(loadGameState);
 </script>
+
 <template>
   <v-container class="h-screen d-flex">
     <v-row class="d-flex justify-center align-center">
@@ -169,6 +178,15 @@ onMounted(loadGameState);
         class="py-2 px-2">
         <template v-slot:actions>
           <v-btn class="ms-auto" text="Jogar novamente" @click="dialog = false"></v-btn>
+        </template>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="warningDialog" width="auto">
+      <v-card max-width="400" prepend-icon="mdi-emoticon-sad" text="Todos os números já foram sorteados." title="EITA!"
+        class="py-2 px-2">
+        <template v-slot:actions>
+          <v-btn class="ms-auto" text="Jogar novamente" @click="warningDialog = false"></v-btn>
         </template>
       </v-card>
     </v-dialog>

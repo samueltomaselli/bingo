@@ -11,7 +11,7 @@ import { fileURLToPath, URL } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/bingo-game-test/",
+  base: "/bingo/",
   plugins: [
     VueRouter(),
     Vue({

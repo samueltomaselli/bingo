@@ -7,4 +7,5 @@ type GameState = {
   id: string;
   board: Cell[][];
   drawnNumber: number | "?";
+  drawnNumbers: number[];
 };
